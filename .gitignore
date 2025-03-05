@@ -6,3 +6,5 @@ models/BERT/sentiment/bert_sentiment_model
 
 models/BERT/multitasking/bert_multitasking_model_overfitted
 models/BERT/multitasking/bert_multitasking_model_full_overfitted
+models/BERT/multitasking/bert_multitasking_model
+models/BERT/multitasking/bert_multitasking_model_full
