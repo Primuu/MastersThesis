@@ -8,3 +8,8 @@ models/BERT/multitasking/bert_multitasking_model_overfitted
 models/BERT/multitasking/bert_multitasking_model_full_overfitted
 models/BERT/multitasking/bert_multitasking_model
 models/BERT/multitasking/bert_multitasking_model_full
+
+models/GRU/sentiment/GRU_sentiment_model
+models/GRU/emotion/GRU_emotion_model
+models/GRU/multitasking/GRU_multitask_model
+
