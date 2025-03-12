@@ -16,3 +16,6 @@ models/GRU/multitasking/GRU_multitask_model
 models/LSTM/sentiment/LSTM_sentiment_model
 models/LSTM/emotion/LSTM_emotion_model
 models/LSTM/multitasking/LSTM_multitask_model
+
+models/SVM/sentiment/SVM_sentiment_model
+models/SVM/emotion/SVM_emotion_model
