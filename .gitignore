@@ -19,3 +19,7 @@ models/LSTM/multitasking/LSTM_multitask_model
 
 models/SVM/sentiment/SVM_sentiment_model
 models/SVM/emotion/SVM_emotion_model
+
+*.png
+*.pth
+
