@@ -1,0 +1,72 @@
+\documentclass[wmii, inf, mgr]{uwmthesis}
+
+\usepackage[utf8]{inputenc}
+\usepackage[MeX]{polski}
+\usepackage{url}
+\usepackage{tikz}
+\usepackage{pgf-pie}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{multicol}
+\usepackage{multirow}
+\usepackage[table,xcdraw]{xcolor}
+
+\usepackage{caption}
+\captionsetup[table]{justification=centering}
+\captionsetup[figure]{justification=centering}
+
+\date{2025}
+\title{Wieloklasowa analiza sentymentu\\z wykorzystaniem modeli NLP --\\ porównanie metod}
+\author{Adam Trentowski}
+\etitle{Multiclass sentiment analysis using~NLP~models --\\ method comparison}
+\wykonanaw{Katedrze Metod Matematycznych Informatyki}
+\ewykonanaw{the Department of Mathematical Methods of Computer Science}
+
+\podkierunkiem{dr Agnieszki Zbrzezny}
+\epodkierunkiem{Agnieszka Zbrzezny, PhD}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\chapter*{Wstęp}
+Współczesne media społecznościowe, stały się głównym źródłem komunikacji i wyrażania opinii. Każdego dnia użytkownicy publikują olbrzymią liczbę wpisów, w których dzielą się~emocjami, nastrojami oraz opiniami na różne tematy – od polityki, przez kulturę, po codzienne wydarzenia. Analiza tych treści może dostarczyć cennych informacji w wielu dziedzinach, takich jak marketing, socjologia, psychologia czy nawet analiza ryzyka w biznesie. W szczególności analiza sentymentu pozwala na automatyczne określanie, jakie emocje i nastawienie wyrażają użytkownicy w swoich wypowiedziach ~\cite{Liu2012}. Dynamiczny rozwój metod przetwarzania języka naturalnego (\textit{Natural Language Processing}, NLP) umożliwia stosowanie coraz bardziej zaawansowanych technik klasyfikacji sentymentu i emocji, co znacząco zwiększa możliwości interpretacji oraz wykorzystania danych tekstowych w badaniach naukowych i biznesie.
+
+\section*{Cel pracy i pytania badawcze}
+Niniejsza praca ma na celu przeprowadzenie porównania skuteczności wieloklasowej analizy sentymentu oraz identyfikacji emocji z wykorzystaniem modeli NLP, takich jak BERT (\textit{Bidirectional Encoder
+Representations from Transformers}), SVM (\textit{Support Vector Machines}), LSTM~(\textit{Long Short-Term Memory}) i GRU (\textit{Gated Recurrent Units}). Badanie obejmuje zarówno klasyfikację sentymentu, jak i rozpoznawanie emocji w tekście. Celem jest określenie, który z tych modeli osiąga najlepsze wyniki oraz czy uczenie wielozadaniowe, czyli jednoczesne trenowanie modelu do analizy sentymentu i emocji, wpływa na dokładność predykcji.
+
+W ramach badania podjęto próbę odpowiedzi na następujące pytania:
+\begin{itemize}
+    \item Który model uczenia maszynowego osiąga najwyższą dokładność w klasyfikacji sentymentu?
+    \item Który model jest najbardziej efektywny w identyfikacji emocji?
+    \item Jak uczenie wielozadaniowe wypada w porównaniu do klasyfikacji jednozadaniowej?
+    \item Jakie są główne wyzwania i ograniczenia związane z wykorzystaniem różnych modeli NLP do analizy sentymentu i emocji?
+\end{itemize}
+
+\section*{Struktura pracy}
+Kolejne rozdziały zawierają wprowadzenie i przegląd literatury obejmujący badania dotyczące analizy sentymentu oraz technik przetwarzania języka naturalnego. Następnie opisane zostały wykorzystane zbiory danych, ich źródła oraz struktura. Kolejna część pracy poświęcona została opisowi zastosowanej metodologii, z uwzględnieniem opisów implementacji modeli i~strategii ich trenowania. Część eksperymentalna obejmuje testy porównawcze, mające na celu ocenę efektywności różnych podejść. Ostatni rozdział zawiera podsumowanie przeprowadzonych badań oraz wnioski wynikające z uzyskanych wyników.
+
+\input{c1_wprowadzenie}
+\input{c2_przeglad}
+\input{c3_dane}
+\input{c4_modele}
+\input{c5_eksperymenty}
+\input{c6_podsumowanie}
+
+\input{biblio}
+
+\listoffigures
+\listoftables
+
+\begin{streszczenie}
+Praca przedstawia analizę porównawczą modeli uczenia maszynowego wykorzystywanych do klasyfikacji sentymentu oraz emocji w tekstach. Zastosowane modele obejmowały BERT, LSTM, GRU oraz SVM, które zostały ocenione pod kątem ich skuteczności w zadaniach klasyfikacji. Wyniki uzyskane podczas eksperymentów wykazały, że efektywność modeli zależy od stopnia skomplikowania zadania. Analiza samych zbiorów danych oraz późniejsza analiza błędów modeli ujawniły, że klasyfikacja sentymentu okazała się bardziej złożona niż klasyfikacja emocji. W kontekście skuteczności, model BERT okazał się najlepszy w zadaniu bardziej złożonym. Niemniej jednak, w przypadku analizy emocji, modele oparte na sieciach neuronowych, takie jak LSTM i~GRU, nie ustępowały BERT-owi, wykazując porównywalną efektywność. W zakresie uczenia wielozadaniowego eksperymenty nie ujawniły wyraźnego wpływu tego podejścia na jakość predykcji. Jeśli chodzi o czas treningu, BERT jest modelem najwolniejszym. Jego zapotrzebowanie na moc obliczeniową może stanowić barierę, z kolei modele LSTM i GRU charakteryzowały się~znacznie krótszym czasem treningu.
+\end{streszczenie}
+
+\begin{abstract}
+This paper presents a comparative analysis of machine learning models used for sentiment and~emotion classification in text. The models applied include BERT, LSTM, GRU, and SVM, which were evaluated in terms of their effectiveness in classification tasks. The results obtained from the experiments showed that the effectiveness of the models depends on the complexity of~the~task. Analysis of the datasets and subsequent model error analysis revealed that sentiment classification was more complex than emotion classification. In terms of effectiveness, the BERT model proved to be the best for the more complex task. However, for emotion analysis, neural network-based models such as LSTM and GRU performed comparably to BERT. Regarding multitask learning, experiments did not reveal a significant impact of this approach on prediction quality. As for training time, BERT was the slowest model. Its computational requirements may~be~a barrier, while LSTM and GRU models exhibited significantly shorter training times.
+\end{abstract}
+
+\end{document}

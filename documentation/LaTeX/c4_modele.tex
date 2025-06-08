@@ -1,0 +1,254 @@
+\chapter{Modele i metody treningu}
+W tym rozdziale przedstawione zostaną opisy modeli wykorzystanych w pracy, uwzględniając ich architekturę, cechy charakterystyczne oraz sposób treningu. Celem jest omówienie procesu uczenia tych modeli, a także przedstawienie parametrów, które zostały użyte podczas trenowania. W tym przypadku starano się zachować jak najmniejszą ingerencję w ustawienia modeli, by przeprowadzić porównanie samych algorytmów, a nie ich dostosowanych wersji, które mogłyby wymagać indywidualnego dostrajania hiperparametrów dla każdego modelu. Modele były trenowane w ten sam sposób zarówno dla klasyfikacji sentymentu, jak i emocji, dlatego opisy dotyczące procesów treningu nie będą powtarzane dla każdej z tych kategorii osobno.
+
+\section{Model SVM}
+Głównym celem maszyny wektorów nośnych jest znalezienie hiperpowierzchni (w przestrzeni cech), która maksymalizuje margines pomiędzy różnymi klasami. W klasyfikacji binarnej SVM stara się znaleźć prostą, która najlepiej separuje dwie klasy, zachowując jak największy odstęp (margines) od punktów należących do tych klas~\cite{UczMasz}.
+
+W klasyfikacji wieloklasowej, jak ma to miejsce w analizie sentymentu i emocji, gdzie w tym przypadku najmniejsza liczba klas wynosi trzy, algorytm SVM stosuje podejście rozszerzające model do obsługi większej liczby etykiet. Zamiast klasycznego podejścia binarnego, wykorzystuje się różne strategie. W pracy tej zastosowano metodę \textit{„jeden kontra jeden”} (ang. \textit{One-vs-One}, OvO). W tej metodzie dla każdej pary klas tworzony jest osobny klasyfikator, a każdy z tych klasyfikatorów wyznacza hiperpłaszczyznę, która oddziela te dwie klasy.
+
+Klasyfikując sentyment, szczególnie ważnym elementem jest przekształcenie danych tekstowych do postaci, którą model może analizować w przestrzeni cech. Tekst, który jest z natury sekwencyjny i nieliczbowy, musi zostać odpowiednio przetworzony, aby mógł być użyty w algorytmie. W tym celu stosuje się odpowiednie techniki reprezentacji tekstu, jak chociażby TF-IDF, o którym mowa poniżej.
+
+\subsection{Zastosowana implementacja i parametry}
+W pracy wykorzystano implementację modelu SVM z biblioteki scikit-learn~\cite{SKLearnSVM}. Implementacja ta została użyta z domyślnymi parametrami, z wyjątkiem kilku zmian, które zostały opisane poniżej.
+
+Do reprezentacji tekstu w przestrzeni cech zastosowano TF-IDF (\textit{Term Frequency-Inverse Document Frequency}), który przekształca słowa w wektory, uwzględniając częstotliwość występowania słów w danej próbce oraz ich istotność w kontekście całego zbioru danych. W procesie tokenizacji wybrano 20\,000 najczęściej występujących słów w zbiorze, które zostały potraktowane jako cechy wejściowe dla modelu. Dzięki temu słowa w zbiorze tekstów są reprezentowane jako liczby, które model SVM wykorzystuje do klasyfikacji.
+
+Model SVM został użyty z jądrem liniowym. Jest to najprostszy kernel, który jest także wydajny w klasyfikacji tekstu. W badaniu~\cite{KernelComparison} stwierdzono, że jądro liniowe osiąga najwyższą dokładność klasyfikacji w najkrótszym czasie. 
+
+Zastosowano ważenie klas, które miało na celu zrównoważenie nierównomiernego rozkładu danych, omówionego w poprzednim rozdziale. Dzięki temu model miał szansę lepiej poradzić sobie z klasami występującymi rzadziej, minimalizując dominację bardziej reprezentowanych klas w zbiorze treningowym.
+
+Parametr C, ustawiony został na wartość 1.0. Pełni on rolę regularyzacji, balansując pomiędzy dopasowaniem modelu do danych a jego zdolnością do generalizacji. Wyższe wartości C zmniejszają margines błędu, co może prowadzić do przeuczenia, natomiast niższe wartości zwiększają tolerancję na błąd, sprzyjając lepszemu uogólnianiu~\cite{UczMasz}.
+
+\subsection{Proces treningu}
+W standardowej implementacji w bibliotece scikit-learn algorytm SVM jest zoptymalizowany do pracy na CPU, dlatego model nie był trenowany na GPU. Czas trenowania wyniósł około 5--7 minut zarówno dla klasyfikacji sentymentu, jak i emocji. Czasy treningu przedstawione w~tej~pracy służą głównie do porównań między modelami, a nie do wyciągania dalszych wniosków.
+
+W analizie sentymentu model osiągnął średnią dokładność 66\% na zbiorze testowym i 65\% na walidacyjnym, co wskazuje na dobre dopasowanie, ponieważ wyniki są porównywalne, sugerując brak przetrenowania i niedotrenowania. Niska dokładność może wynikać z samej natury zadania oraz złożoności tekstów.
+
+W klasyfikacji emocji model uzyskał dokładność 91\% zarówno na zbiorze testowym, jak~i~walidacyjnym, co~świadczy o dobrym dopasowaniu i wysokiej skuteczności, a także sugeruje, że~model dobrze generalizuje lub teksty były wyraźnie zróżnicowane.
+
+\section{Model LSTM}
+\textit{Long Short-Term Memory} (LSTM) to rodzaj rekurencyjnej sieci neuronowej (RNN), który został zaprojektowany do rozwiązania problemu zanikania gradientu, występującego w klasycznych RNN podczas trenowania na długich sekwencjach. Dzięki swojej strukturze, LSTM jest~w~stanie przechowywać istotne informacje przez dłuższy czas, co sprawia, że świetnie nadaje się do analizy sekwencji, takich jak teksty. W LSTM wykorzystywane są trzy bramki: wejściowa, zapomnienia oraz wyjściowa, które pozwalają modelowi kontrolować przepływ informacji oraz zapamiętywać lub zapominać ważne lub nieistotne dane w zależności od kontekstu. Dzięki tym mechanizmom LSTM jest w stanie uchwycić długoterminowe zależności w danych, co czyni go~odpowiednim narzędziem w analizie tekstów~\cite{LSTMIntroduction}.
+
+\subsection{Zastosowana implementacja i parametry}
+Implementacja modelu LSTM w tej pracy opiera się na bibliotece PyTorch, która oferuje dużą elastyczność w implementacji sieci neuronowych oraz zapewnia dostęp do narzędzi do~ich~treningu i~ewaluacji~\cite{PyTorchDocs}. W tej pracy użyto modelu LSTM z 256 jednostkami w warstwie ukrytej, z dodatkową warstwą osadzającą (ang. \textit{embedding layer}), która przekształca tokeny na~wektory o wymiarze 256.
+
+\newpage
+Do tokenizacji tekstów użyto narzędzia z biblioteki Keras~\cite{KerasDocs}. Proces tokenizacji polega na~przekształceniu tekstów w sekwencje liczb (tokeny), które mogą być użyte w modelu. W~przypadku tej implementacji podobnie jak w przypadku modelu SVM również wybierano 20\,000 najczęściej występujących słów w zbiorze danych.
+
+Początkowa implementacja modelu, zarówno dla klasyfikacji emocji, jak i sentymentu, wykazała problem z nadmiernym dopasowaniem do tylko i wyłącznie jednej klasy. Aby poprawić wyniki, zastosowano warstwę dropout o współczynniku 0.5. Dropout jest techniką regularyzacji, która polega na losowym wyłączaniu części neuronów podczas treningu, co pozwala na~zwiększenie ogólnej zdolności modelu do generalizacji na nowych danych. Dodatkowo, w celu poprawy efektywności przetwarzania tekstu, użyto dwukierunkowego LSTM (ang. \textit{bidirectional LSTM}). Implementacja modelu LSTM objęła także wykorzystanie funkcji aktywacji ReLU (ang. \textit{Rectified Linear Unit}) w warstwie wyjściowej. 
+
+Cała sieć została zoptymalizowana przy użyciu algorytmu Adam (ang. \textit{Adaptive Moment Estimation}), który jest jedną z popularniejszych metod optymalizacji w uczeniu głębokich sieci neuronowych. W celu zrównoważenia nierównomiernego rozkładu danych w zbiorze treningowym wprowadzono wagi klasowe.
+
+W przypadku wersji wielozadaniowej model był trenowany równolegle do obu zadań. Dwie oddzielne warstwy wyjściowe zostały użyte do klasyfikacji sentymentu i emocji.
+
+\subsection{Proces treningu}
+Model LSTM był trenowany przez dwie epoki, co zostało uznane za standard dla wszystkich modeli po testach na modelu BERT. Taka długość treningu okazała się wystarczająca do uzyskania stabilnych wyników oraz zapobiegła przeuczeniu. Czas treningu wynosił średnio 10 minut dla~wersji jednozadaniowych, a dla wersji multitask około 20 minut. Modele były trenowane na~GPU.
+
+\begin{table}[H]
+\centering
+\label{tab:lstm_training_process}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Epoka} & \multicolumn{2}{c|}{\textbf{Sentyment}} & \multicolumn{2}{c|}{\textbf{Emocje}} \\
+\cline{2-5}
+& \textbf{Dokł. (train)} & \textbf{Dokł (val)} & \textbf{Dokł (train)} & \textbf{Dokł (val)} \\
+\hline
+1 & 55.27\% & 63.04\% & 67.27\% & 92.06\% \\
+2 & 68.24\% & 66.68\% & 93.34\% & 94.76\% \\
+\hline
+\end{tabular}
+\caption{Porównanie dokładności podczas treningu modeli jednozadaniowych LSTM.\\Dane własne.}
+\end{table}
+
+W przypadku wersji jednozadaniowej, dla klasyfikacji sentymentu model uzyskał dokładność 67\% na zbiorze testowym, 68\% na zbiorze treningowym oraz 66.7\% na zbiorze walidacyjnym. Z danych przedstawionych w tabeli powyżej widać, że model poprawiał wyniki na zbiorze treningowym i walidacyjnym w procesie uczenia.
+
+W analizie emocji model osiągnął dokładność 96.7\% na zbiorze testowym, 93\% na zbiorze treningowym oraz niemal 95\% na zbiorze walidacyjnym, co sugeruje skuteczną klasyfikację. W~trakcie procesu treningowego również nie zauważono oznak przeuczenia.
+
+\begin{table}[H]
+\centering
+\label{tab:lstm_multi_training_process}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Epoka} & \multicolumn{2}{c|}{\textbf{Sentyment}} & \multicolumn{2}{c|}{\textbf{Emocje}} \\
+\cline{2-5}
+& \textbf{Dokł. (train)} & \textbf{Dokł. (val)} & \textbf{Dokł. (train)} & \textbf{Dokł. (val)} \\
+\hline
+1 & 54.11\% & 64.53\% & 71.31\% & 93.57\% \\
+2 & 66.93\% & 66.13\% & 93.92\% & 94.54\% \\
+\hline
+\end{tabular}
+\caption{Porównanie dokładności podczas treningu modelu wielozadaniowego LSTM.\\Dane własne.}
+\end{table}
+
+W przypadku modelu wielozadaniowego proces treningu przebiegał bardzo podobnie, osiągając niemal identyczne wyniki jak modele jednozadaniowe dla obu zadań.
+
+\section{Model GRU}
+\textit{Gated Recurrent Units} (GRU) to kolejny typ rekurencyjnej sieci neuronowej, który, podobnie jak LSTM, został zaprojektowany w celu rozwiązania problemu zanikania gradientu. GRU~różni się od LSTM tym, że posiada jedynie dwie bramki: bramkę aktualizacji oraz bramkę zapomnienia. Bramka aktualizacji decyduje, jakie informacje mają zostać zachowane, a bramka zapomnienia określa, które informacje należy zapomnieć. Dzięki tej uproszczonej strukturze, GRU~jest szybsze w trenowaniu i potrzebuje mniej zasobów obliczeniowych, jednocześnie osiągając zbliżoną skuteczność w porównaniu do LSTM w wielu zadaniach, w tym w analizie tekstu~\cite{GRUvsLSTM}.
+
+\subsection{Zastosowana implementacja i parametry} 
+W przypadku GRU implementacja również opiera się o bibliotekę PyTorch~\cite{PyTorchDocs}. Implementacja jest bliźniaczo podobna: model wykorzystuje warstwę osadzającą, która przekształca tokeny na wektory o wymiarze 256, a następnie przechodzi przez warstwę GRU z 256 jednostkami ukrytymi. Proces tokenizacji przebiegł dokładnie tak samo jak w przypadku modelu LSTM. Użyto tokenizera z biblioteki Keras~\cite{KerasDocs} i wybrano 20\,000 najczęściej występujących słów w~zbiorze.
+
+Różnice między modelami LSTM i GRU pojawiają się w tym miejscu. Dla standardowych, powyższych ustawień model GRU osiągnął wyniki porównywalne do tych, które uzyskano po~wprowadzeniu dodatkowych parametrów. Dodatkowe parametry zostały wprowadzone w celu zapewnienia sprawiedliwego porównania między modelami. Zastosowano więc również warstwę dropout o współczynniku 0.5. Użyto również dwukierunkowego GRU (ang. \textit{bidirectional GRU}), który tak jak dla modelu LSTM umożliwia modelowi analizowanie tekstu zarówno od~lewej do~prawej, jak i~od~prawej do~lewej. W warstwie wyjściowej zastosowano funkcję aktywacji ReLU, a optymalizacja modelu przebiegała z wykorzystaniem algorytmu Adam. Tak~jak~w~przypadku LSTM, również w tym modelu użyto wag klasowych.
+
+Wersja wielozadaniowa modelu GRU była trenowana paralelnie do obu zadań -- klasyfikacji sentymentu oraz emocji. Do każdego z tych zadań przypisano oddzielną warstwę wyjściową.
+
+\newpage
+\subsection{Proces treningu} 
+Trening modelu GRU obejmował dwie epoki, a czas treningu był bardzo zbliżony do modelu LSTM i również wynosił około 10 minut dla wersji jednozadaniowych oraz około 20 minut dla~modelu wielozadaniowego. Trening odbywał się na procesorze graficznym.
+
+\begin{table}[H]
+\centering
+\label{tab:gru_training_process}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Epoka} & \multicolumn{2}{c|}{\textbf{Sentyment}} & \multicolumn{2}{c|}{\textbf{Emocje}} \\
+\cline{2-5}
+& \textbf{Dokł. (train)} & \textbf{Dokł. (val)} & \textbf{Dokł. (train)} & \textbf{Dokł. (val)} \\
+\hline
+1 & 55.20\% & 64.28\% & 76.35\% & 94.22\% \\
+2 & 67.95\% & 64.38\% & 93.87\% & 94.33\% \\
+\hline
+\end{tabular}
+\caption{Porównanie dokładności podczas treningu modeli jednozadaniowych GRU.\\Dane własne.}
+\end{table}
+
+Klasyfikując sentyment model uzyskał dokładność na poziomie 64\% na zbiorze testowym, 68\% na zbiorze treningowym oraz 64\% na zbiorze walidacyjnym. Analizując wyniki na zbiorze walidacyjnym w trakcie procesu uczenia, można zauważyć, że dokładność stabilizuje się, co~wskazuje na pewną stagnację w dalszym uczeniu modelu. Niemniej jednak, model nie wykazuje oznak przeuczenia, ponieważ dokładność na zbiorze walidacyjnym nie spadła, mimo wzrostu wydajności na zbiorze treningowym.
+
+W analizie emocji, model osiągnął dokładność na poziomie 94\% na zbiorze testowym, niemal 94\% na zbiorze treningowym oraz 94\% na zbiorze walidacyjnym. Również w tym przypadku wyniki są stabilne, ale model nie wykazuje oznak przeuczenia.
+
+\begin{table}[H]
+\centering
+\label{tab:gru_multi_training_process}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Epoka} & \multicolumn{2}{c|}{\textbf{Sentyment}} & \multicolumn{2}{c|}{\textbf{Emocje}} \\
+\cline{2-5}
+& \textbf{Dokł. (train)} & \textbf{Dokł. (val)} & \textbf{Dokł. (train)} & \textbf{Dokł. (val)} \\
+\hline
+1 & 54.38\% & 63.41\% & 77.53\% & 94.12\% \\
+2 & 66.92\% & 64.98\% & 93.77\% & 94.36\% \\
+\hline
+\end{tabular}
+\caption{Porównanie dokładności podczas treningu modelu wielozadaniowego GRU.\\Dane własne.}
+\end{table}
+
+Proces treningu modelu wielozadaniowego przebiegał w sposób zbliżony do modeli jednozadaniowych, osiągając prawie takie same wyniki dla obu zadań.
+
+\section{Model BERT}
+\textit{Bidirectional Encoder Representations from Transformers} (BERT) to najbardziej zaawansowany model użyty w tej pracy, a także jeden z najbardziej zaawansowanych modeli w dziedzinie przetwarzania języka naturalnego. Model ten bazuje na architekturze Transformer, która wykorzystuje mechanizm \textit{self-attention} do przetwarzania sekwencji. Główna innowacja BERT-a polega na jego dwukierunkowym podejściu do analizy tekstu, co oznacza, że~model uwzględnia kontekst zarówno poprzedzających, jak i następujących słów w~danym zdaniu. Jednak w~przeciwieństwie do LSTM czy GRU, które realizują dwukierunkowość poprzez analizowanie tekstu sekwencyjnie, BERT wykorzystuje wspomniany wcześniej mechanizm samouwagi, który pozwala mu jednocześnie analizować całą sekwencję, uwzględniając kontekst wszystkich słów w~zdaniu. To umożliwia modelowi lepsze uchwycenie semantycznych relacji między słowami~\cite{BERT}.
+
+BERT jest wstępnie przetrenowany na ogromnych zbiorach danych, co pozwala na uzyskanie uniwersalnych reprezentacji słów, które mogą być później dostosowane do różnych zadań za~pomocą dodatkowego etapu \textit{fine-tuningu}. W praktyce oznacza to, że model BERT może być łatwo zaadoptowany do szerokiego zakresu zadań NLP, w tym właśnie analizy sentymentu czy rozpoznawania emocji.
+
+\subsection{Zastosowana implementacja i parametry}
+
+W tej pracy użyto implementacji modelu BERT dostępnej w bibliotece Hugging Face transformers~\cite{HuggingFaceDocs}. Model oparty jest na wersji \textit{bert-base-uncased}, która została wstępnie przetrenowana na dużych zbiorach danych i dostosowana do klasyfikacji tekstów. Użyto tokenizera BERT z~tej~samej biblioteki, a w procesie tokenizacji wszystkie słowa zostały przekształcone na tokeny, a teksty zostały przycięte lub uzupełnione do maksymalnej długości 256 tokenów.
+
+Wszystkie modele, zarówno jednozadaniowe, jak i wielozadaniowe, używały tych samych parametrów, aby zapewnić sprawiedliwe porównanie. Model BERT w użytej wersji implementacji oparty jest na 12 ukrytych warstwach transformera. Długość sekwencji wejściowej została ustalona na 256 tokenów. Liczba epok wynosiła początkowo pięć, jednak po analizie wyników stwierdzono, że model zaczyna się przetrenowywać po drugiej epoce, dlatego ostatecznie zdecydowano się na dwie epoki. Optymalizacja modelu odbywała się za pomocą algorytmu AdamW, który jest dostosowaną wersją algorytmu Adam, przystosowaną do pracy z parametrami BERT-a. Funkcja strat to \textit{Cross-Entropy Loss}, z wagami klasowymi, które zostały obliczone na podstawie nierównomiernego rozkładu klas w zbiorze treningowym.
+
+Wersja wielozadaniowa modelu BERT wykorzystywała dwie oddzielne warstwy wyjściowe: jedną do klasyfikacji sentymentu i drugą do klasyfikacji emocji. 
+
+\subsection{Proces treningu}
+\raggedbottom
+\vspace{20pt}
+\begin{table}[H]
+\centering
+\label{tab:bert_5_training_process}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Epoka} & \multicolumn{2}{c|}{\textbf{Sentyment}} & \multicolumn{2}{c|}{\textbf{Emocje}} \\
+\cline{2-5}
+& \textbf{Dokł. (train)} & \textbf{Dokł. (val)} & \textbf{Dokł. (train)} & \textbf{Dokł. (val)} \\
+\hline
+1 & 70.77\% & 72.92\% & 91.48\% & 95.18\% \\
+2 & 79.13\% & 73.41\% & 94.94\% & 95.24\% \\
+3 & 87.32\% & 72.93\% & 95.10\% & 95.10\% \\
+4 & 92.89\% & 72.07\% & 95.32\% & 95.24\% \\
+5 & 95.35\% & 72.61\% & 95.43\% & 95.04\% \\
+\hline
+\end{tabular}
+\caption{Porównanie dokładności podczas treningu na pięciu epokach modeli jednozadaniowych BERT. Dane własne.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\label{tab:bert_multi_5_training_process}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Epoka} & \multicolumn{2}{c|}{\textbf{Sentyment}} & \multicolumn{2}{c|}{\textbf{Emocje}} \\
+\cline{2-5}
+& \textbf{Dokł. (train)} & \textbf{Dokł. (val)} & \textbf{Dokł. (train)} & \textbf{Dokł. (val)} \\
+\hline
+1 & 69.85\% & 72.86\% & 91.19\% & 94.99\% \\
+2 & 77.60\% & 72.24\% & 94.85\% & 94.89\% \\
+3 & 85.17\% & 72.13\% & 95.17\% & 95.11\% \\
+4 & 90.85\% & 71.64\% & 95.24\% & 95.05\% \\
+5 & 93.71\% & 71.26\% & 95.36\% & 95.23\% \\
+\hline
+\end{tabular}
+\caption{Porównanie dokładności podczas treningu na pięciu epokach modelu wielozadaniowego BERT. Dane własne.}
+\end{table}
+
+W pierwszym podejściu model BERT był trenowany przez pięć epok, zarówno dla wersji jednozadaniowych, jak i wielozadaniowych. Po przeanalizowaniu wyników na zbiorze walidacyjnym zauważono, że po pewnym czasie dokładność modelu na zbiorze walidacyjnym zaczynała się stabilizować lub wręcz maleć. Takie zachowanie wskazywało na problem z przeuczeniem, szczególnie w przypadku wersji jednozadaniowej dla klasyfikacji sentymentu. Podobny trend~zauważono w wersji wielozadaniowej, gdzie dokładność na zbiorze walidacyjnym również malała.
+
+W związku z tym, zdecydowano, że liczba epok będzie ograniczona do dwóch. Takie podejście miało na celu uniknięcie przeuczenia. Zmniejszenie liczby epok okazało się skuteczne, a~czas treningu został skrócony. Trening modelu BERT na pięciu epokach trwał średnio dwie godziny dla wersji jednozadaniowej i około pięć godzin dla wersji wielozadaniowej. Wszystkie modele były trenowane na GPU.
+
+\begin{table}[H]
+\centering
+\label{tab:bert_2_training_process}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Epoka} & \multicolumn{2}{c|}{\textbf{Sentyment}} & \multicolumn{2}{c|}{\textbf{Emocje}} \\
+\cline{2-5}
+& \textbf{Dokł. (train)} & \textbf{Dokł. (val)} & \textbf{Dokł. (train)} & \textbf{Dokł. (val)} \\
+\hline
+1 & 70.64\% & 73.61\% & 91.25\% & 95.10\% \\
+2 & 78.91\% & 73.69\% & 94.92\% & 95.14\% \\
+\hline
+\end{tabular}
+\caption{Porównanie dokładności podczas treningu modeli jednozadaniowych BERT.\\Dane własne.}
+\end{table}
+
+\begin{table}[H]
+\centering
+\label{tab:bert_multi_2_training_process}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Epoka} & \multicolumn{2}{c|}{\textbf{Sentyment}} & \multicolumn{2}{c|}{\textbf{Emocje}} \\
+\cline{2-5}
+& \textbf{Dokł. (train)} & \textbf{Dokł. (val)} & \textbf{Dokł. (train)} & \textbf{Dokł. (val)} \\
+\hline
+1 & 69.58\% & 72.96\% & 91.06\% & 94.79\% \\
+2 & 77.71\% & 72.47\% & 94.82\% & 94.97\% \\
+\hline
+\end{tabular}
+\caption{Porównanie dokładności podczas treningu modelu wielozadaniowego BERT.\\Dane własne.}
+\end{table}
+
+W drugim podejściu, czas treningu modelu BERT na wersji jednozadaniowej wynosił średnio jedną godzinę, podczas gdy dla wersji wielozadaniowej trwał około dwóch godzin. W przypadku klasyfikacji sentymentu, model uzyskał dokładność 74\% na zbiorze testowym, 72\% na zbiorze walidacyjnym oraz 78\% na zbiorze treningowym. Wyniki te wskazują, że model jest właściwie dopasowany, choć na zbiorze walidacyjnym i testowym wystąpił pewien spadek dokładności w~porównaniu do zbioru treningowego, co może sugerować lekkie przeuczenie. Natomiast w~analizie emocji model osiągnął bardzo wysoką dokładność 95\% zarówno na zbiorze walidacyjnym, jak i testowym, a na zbiorze treningowym wynik ten był niemal identyczny, co sugeruje, że~model dobrze radzi sobie z klasyfikacją emocji i nie jest przetrenowany.
+
+W przypadku wersji wielozadaniowej, wyniki były porównywalne.
+
+\section{Reprodukcja wyników}
+Kod źródłowy wykorzystany do przeprowadzenia eksperymentów oraz treningu wszystkich modeli jest dostępny pod adresem: \url{https://github.com/Primuu/MastersThesis}. Repozytorium zawiera dane, skrypty do przygotowania danych, implementacje modeli, procesy treningowe oraz skrypty do ewaluacji i wizualizacji wyników.
+
+Wszystkie eksperymenty były realizowane z użyciem bibliotek:
+\begin{itemize}
+    \item \texttt{pandas} -- wersja 2.2.3,
+    \item \texttt{scikit-learn} -- wersja 1.5.2,
+    \item \texttt{PyTorch} -- wersja 2.4,
+    \item \texttt{transformers} -- wersja 4.46.2,
+    \item \texttt{tensorflow} -- wersja 2.10,
+    \item \texttt{matplotlib} -- wersja 3.9.2,
+    \item \texttt{seaborn} -- wersja 0.13.
+\end{itemize}
+
+\section{Miary skuteczności}
+Wszystkie modele zostały ocenione przy użyciu czterech miar: \textit{accuracy}, \textit{precision}, \textit{recall} oraz \textit{F1-score}. 
+\begin{itemize}
+    \item \textit{Accuracy} (dokładność) oblicza się jako stosunek liczby poprawnych klasyfikacji do całkowitej liczby próbek. W przypadku niezrównoważonych klas może nie oddać pełnej skuteczności modelu.
+    \item \textit{Precision} (precyzja) mierzy, ile z przewidywanych pozytywnych przypadków jest faktycznie pozytywnych. Wysoka precyzja oznacza, że model rzadko popełnia błędy.
+    \item \textit{Recall} (czułość) mierzy, ile z rzeczywistych pozytywnych przypadków zostało poprawnie zidentyfikowanych przez model.
+    \item \textit{F1-score} to średnia harmoniczna między precyzją a czułością, która pozwala na uzyskanie zrównoważonego wyniku. F1-score jest szczególnie użyteczne w przypadkach, gdy klasy są~niezrównoważone, ponieważ traktuje precyzję i czułość w równym stopniu.
+\end{itemize}
+
+\endinput

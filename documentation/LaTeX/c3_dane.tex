@@ -1,0 +1,270 @@
+\chapter{Zbiory danych i przetwarzanie tekstu}
+
+W niniejszej pracy do analizy sentymentu oraz emocji wykorzystano kilka ogólnodostępnych zbiorów danych pochodzących z różnych źródeł. Każdy zbiór został wybrany pod kątem liczebności, jakości danych oraz dostępności licencyjnej umożliwiającej przetwarzanie i analizę. Wszystkie dane dotyczą wypowiedzi użytkowników opublikowanych na różnych platformach społecznościowych, głównie na X (dawniej Twitterze). Cechują się one często emocjonalnym charakterem, typowym dla komentarzy internetowych. Zbiory miały docelowo liczyć około~100~tys.~wpisów, co stanowiło kompromis pomiędzy wielkością zbioru a dostępnością zasobów obliczeniowych.
+
+\section{Opis zbiorów danych do analizy sentymentu}
+
+Celem przygotowania danych do zadania klasyfikacji sentymentu było uzyskanie korpusu zawierającego około 100 tys. wpisów. Aby osiągnąć ten cel, połączono kilka dostępnych publicznie zbiorów danych w jeden spójny zestaw. Po integracji dane zostały znormalizowane w~zbiór trójklasowy o następujących etykietach:
+\begin{itemize}
+    \item 0 -- negatywny,
+    \item 1 -- neutralny,
+    \item 2 -- pozytywny.
+\end{itemize}
+
+\vspace{5pt}
+W ramach tego procesu wykorzystano trzy zbiory:
+
+\subsection{Twitter Tweets Sentiment Dataset}
+
+Pierwszy wykorzystany zbiór to \textit{„Twitter Tweets Sentiment Dataset”}, dostępny na platformie Kaggle~\cite{TTSD}. Zbiór ten składa się z 27\,480 tweetów, z których każdy został oznaczony etykietą: positive, neutral lub negative. Etykiety te zostały przemapowane na wartości liczbowe 2, 1 oraz 0 odpowiednio.
+
+Licencja tego zbioru, to CC0 (ang. \textit{Public Domain}), co umożliwia jego swobodne wykorzystanie, również do celów komercyjnych. Wstępna analiza wykazała obecność jednej pustej wartości, która została usunięta. Poza tym zbiór nie zawierał duplikatów.
+
+\subsection{Multiclass Sentiment Analysis Dataset}
+
+Drugim zbiorem był \textit{„Multiclass Sentiment Analysis Dataset”}, opublikowany na platformie Hugging Face~\cite{MSAD}. Zawiera on 41\,643 przykłady tekstowe, oznaczone sentymentem jako positive, negative lub neutral, z dodatkowym polem label wskazującym już odpowiednie etykiety numeryczne 2, 0 i 1.
+
+Zbiór udostępniony jest na licencji Apache 2.0, umożliwiającej zarówno modyfikacje, jak~i~komercyjne wykorzystanie pod warunkiem zachowania atrybucji. Zbiór nie zawierał duplikatów, lecz podobnie jak poprzedni, zawierał jedną pustą wartość, którą usunięto podczas czyszczenia danych.
+
+\subsection{TweetEval}
+
+Trzecim i zarazem największym wykorzystanym zbiorem danych był \textit{„TweetEval”}, również dostępny na platformie Hugging Face~\cite{TweetEval}. Spośród siedmiu dostępnych podzbiorów wybrano zbiór  \textit{„sentiment analysis”}, obejmujący 59\,899 tweetów. Według źródła oznakowanie danych odpowiada: 0 (negatywne), 1 (neutralne) i 2 (pozytywne), co umożliwiło bezpośrednie włączenie danych do docelowego zbioru.
+
+TweetEval dostarczany jest na licencji CC BY 3.0, co oznacza konieczność podania źródła i autorstwa. Wersja zbioru dotycząca sentymentu bazuje na danych opublikowanych przez Sarę Rosenthal, Nourę Farrę i Preslava Nakova w pracy \textit{„Proceedings of the 11th international workshop on semantic evaluation (2017)”}. Podczas wstępnego przetwarzania danych nie wykryto brakujących wartości, natomiast wykryto 26 duplikatów, które zostały usunięte.
+
+\subsection{Łączenie zbiorów danych}
+
+Po wstępnym przeglądzie danych i ujednoliceniu etykiet klasowych, trzy opisane powyżej zbiory danych zostały połączone w jeden korpus. Aby zapewnić losowe rozmieszczenie przykładów pochodzących z różnych źródeł oraz uniknąć potencjalnych zależności wynikających z~kolejności danych, cały korpus został dodatkowo przemieszany z ustalonym ziarnem.
+
+W wyniku połączenia powstał zestaw zawierający niespełna 129 tys. rekordów tekstowych. Dane nie zawierały brakujących wartości, natomiast dalsza analiza wykazała obecność 27 tys. duplikatów, które zostały usunięte. Ostateczny rozmiar zbioru danych po połączeniu wyniósł 101\,515 unikalnych wpisów.
+
+\section{Opis zbioru danych do analizy emocji}
+
+Zbiór danych wykorzystany do zadania klasyfikacji emocji to \textit{„Emotion Dataset”}, opublikowany na platformie Kaggle~\cite{EmotionDs}. Zbiór ten zawiera około 400 tys. tweetów, z których każdy został przyporządkowany do jednej z sześciu klas emocji. Rozkład danych pomiędzy klasami jest jednak silnie niezrównoważony -- najmniej liczna klasa zawiera w przybliżeniu 15 tys. wpisów.
+
+Zgodnie z dokumentacją zbioru, przyporządkowanie etykiet klas prezentuje się następująco:
+\begin{itemize}
+    \item 0 -- smutek,
+    \item 1 -- radość,
+    \item 2 -- miłość,
+    \item 3 -- gniew,
+    \item 4 -- strach,
+    \item 5 -- zaskoczenie,
+\end{itemize}
+
+Dane zostały udostępnione na licencji MIT, która umożliwia ich dowolne wykorzystywanie, modyfikowanie oraz rozpowszechnianie, również w celach komercyjnych, przy zachowaniu informacji o autorach. Zbiór nie zawierał pustych rekordów, natomiast zostało usuniętych 686 duplikatów.
+
+\newpage
+\section{Czyszczenie i przygotowanie zbiorów}
+
+W celu zapewnienia sprawiedliwego porównania skuteczności różnych modeli klasyfikacyjnych, zarówno dane dotyczące sentymentu, jak i emocji zostały poddane jednakowemu, umiarkowanemu czyszczeniu. Celem było zminimalizowanie wpływu intensywnego przetwarzania wstępnego na jakość predykcji, koncentrując się na zdolnościach klasyfikacyjnych poszczególnych architektur. W szczególności zrezygnowano z lematyzacji, czyli procesu sprowadzania wyrazów do ich form podstawowych (np. \textit{„miałem”} → \textit{„mieć”}), która może mieć znaczenie w~modelach opartych na tradycyjnych reprezentacjach tekstu. W przypadku modelu BERT takie zabiegi nie są konieczne, ponieważ zastosowany w nim tokenizator oparty na podwyrazach (ang. \textit{WordPiece}) samodzielnie radzi sobie z różnorodnymi formami, ucząc się reprezentacji słów w ich rzeczywistym kontekście.
+
+Zgodnie z ustaleniami zaprezentowanymi w literaturze, współczesne modele NLP potrafią efektywnie wykorzystywać elementy tekstu, takie jak interpunkcja czy niestandardowa pisownia, dlatego nadmierna ingerencja w strukturę tekstu może prowadzić do utraty cennych informacji kontekstowych. Badania Kurniasih i Manika~\cite{PreprocessingKurniasih} wskazują, że intensywne czyszczenie tekstu nie przynosi istotnych korzyści przy wykorzystaniu modeli takich jak BERT czy sieci LSTM. Ponadto Tan i współautorzy~\cite{PreprocessingTan} dowodzą, że modele potrafią efektywnie wykorzystywać kontekst zawarty w nieformalnym i częściowo nieuporządkowanym tekście.
+
+\vspace{5pt}
+
+Proces czyszczenia ograniczał się więc do kilku prostych operacji:
+\begin{itemize}
+    \item usunięcia linków (np. \texttt{http://...}, \texttt{www...}),
+    \item usunięcia oznaczeń użytkowników (np. \texttt{@username}),
+    \item zachowania znaków interpunkcyjnych (\texttt{.,!?}) jako potencjalnych nośników emocji,
+    \item usunięcia pozostałych znaków specjalnych i nadmiarowych białych znaków,
+    \item usunięcia bardzo krótkich wpisów ($\leq$ 3 znaki), które uznano za szum informacyjny.
+\end{itemize}
+
+W wyniku zastosowanego czyszczenia oba zbiory danych -- dotyczące sentymentu oraz emocji -- uzyskały następujące rozkłady klas:
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \pie[text=legend, radius=3.5, color={green!70!black, gray!80, red!70, yellow!60, purple!60, blue!60}]
+        {
+            33.83/Radość,
+            29.08/Smutek,
+            13.75/Złość,
+            11.45/Strach,
+             8.29/Miłość,
+             3.59/Zaskoczenie
+        }
+    \end{tikzpicture}
+    \caption{Rozkład procentowy klas w zbiorze do klasyfikacji emocji. Dane własne.}
+    \label{fig:emotion-distribution}
+\end{figure}
+
+Zbiór danych przeznaczony do klasyfikacji emocji zawierał końcowo 416\,120 wpisów, nie~zawierając przy tym duplikatów czy wartości pustych.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \pie[text=legend, radius=3.5, color={blue!60, green!70!black, red!70}]
+        {
+            42.34/Neutralny,
+            34.46/Pozytywny,
+            23.20/Negatywny
+        }
+    \end{tikzpicture}
+    \caption{Rozkład procentowy klas w zbiorze do klasyfikacji sentymentu. Dane własne.}
+    \label{fig:sentiment-distribution}
+\end{figure}
+
+Zbiór danych przeznaczony do klasyfikacji sentymentu zawierał 101\,419 wpisów. Po czyszczeniu zaistniała potrzeba usunięcia 150 zduplikowanych rekordów. Finalnie pozostało 101\,269 unikalnych przykładów.
+
+Na tym etapie przetwarzanie danych zostało zakończone, a wszelkie dalsze operacje, takie jak~tokenizacja czy dodanie specjalnych tokenów (np. \textit{[CLS]}, \textit{[SEP]}) wymaganych przez konkretne modele, zostaną przeprowadzone już podczas etapu treningu.
+
+\section{Statystyczna charakterystyka danych po czyszczeniu}
+
+W celu dokładniejszej charakterystyki danych użytych do trenowania modeli przeprowadzono dalszą analizę statystyczną. Analiza skupiła się na rozkładzie klas (w celu oceny nierówności rozkładu w zbiorze i podjęcia działań wyrównujących), długości tekstów oraz częstości występowania słów. Pozwoliło to na identyfikację  ekstremalnych wartości, które mogłyby zaburzyć proces uczenia modeli. Jak piszą autorzy pracy~\cite{ClassImbalance}, niezrównoważone zbiory mogą prowadzić do przetrenowania modeli względem klas dominujących. W takich przypadkach zaleca się zastosowanie technik przeciwdziałających temu zjawisku, takich jak ważenie klas (ang. \textit{class weighting}), nadpróbkowanie lub podpróbkowanie. 
+
+W niniejszej pracy zdecydowano się na zastosowanie mechanizmu ważenia klas, co umożliwia algorytmom lepsze dopasowanie się do mniej licznych klas. Dodatkowo ustalono maksymalną długość tekstu na poziomie 256 znaków, co wynikało z ograniczeń w zasobach obliczeniowych.
+
+
+\subsection{Zbiór do analizy emocji}
+\subsubsection{Rozkład klas}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{obrazy/emotion_plot.png}
+    \caption{Rozkład liczebności poszczególnych klas w zbiorze danych do analizy emocji. Dane własne.}
+    \label{fig:emotion-class-png}
+\end{figure}
+
+Na podstawie analizy rozkładu klas (Rysunek \ref{fig:emotion-class-png}) widać wyraźnie, jak nierównomiernie rozkładają się przykłady przypisane do poszczególnych emocji. W celu uzyskania zbioru równomiernego pod względem klas i zgodnego z założoną, dla obu zbiorów, liczbą 100 tysięcy przykładów, z każdej klasy wylosowano maksymalnie 16\,667 przykładów. Jedynym odstępstwem od tej zasady była klasa \textit{„Zaskoczenie”}, której rozmiar nie pozwalał na osiągnięcie docelowej liczby próbek. W związku z tym zdecydowano się również na zastosowanie ważenia klas podczas trenowania modeli.
+
+\subsubsection{Analiza długości tekstów}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{obrazy/hist_emotion_1.png}
+    \caption{Rozkład długości tekstów w zbiorze danych do analizy emocji. Dane własne.}
+    \label{fig:hist-emotion-1-png}
+\end{figure}
+Powyższy histogram (Rysunek \ref{fig:hist-emotion-1-png}) ukazuje, że znaczna część danych koncentruje się~w~przedziale 50--150 znaków, natomiast najdłuższe wpisy przekraczały 800 znaków. Takie dane odstające mogłyby negatywnie wpłynąć na stabilność trenowania modeli.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{obrazy/hist_emotion_2.png}
+    \caption{Rozkład długości tekstów w zbiorze danych do analizy emocji o długości poniżej 400 znaków. Dane własne.}
+    \label{fig:hist-emotion-2-png}
+\end{figure}
+Drugi histogram, odfiltrowujący dane o długości równej bądź większej niż 400 znaków (Rysunek \ref{fig:hist-emotion-2-png}), pozwolił na dokładniejsze uwidocznienie struktury rozkładu. Większość wartości mieści się w przedziale od 30 do 120 znaków, jednak pewna część danych rozkłada się również w zakresie od 250 do około 310 znaków.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{obrazy/box_emotion_1.png}
+    \caption{Rozkład liczby znaków w próbkach w zbiorze do analizy emocji. Dane własne.}
+    \label{fig:box-emotion-1-png}
+\end{figure}
+Na wykresie pudełkowym (Rysunek \ref{fig:box-emotion-1-png}) widać, że wszystkie wartości powyżej 239 znaków można uznać za wartości odstające (outliers). Gdyby wszystkie te próbki były potraktowane jako outliers, ich liczba wynosiłaby 9\,951. Zdecydowano się jednak odciąć jedynie próbki, których długość jest większa niż 256.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{obrazy/hist_emotion_3.png}
+    \caption{Rozkład długości tekstów w zbiorze danych do analizy emocji po usunięciu wartości odstających. Dane własne.}
+    \label{fig:hist-emotion-3-png}
+\end{figure}
+Po odcięciu 4\,922 rekordów, pozostało 411\,198 próbek. Jak wspomniano wcześniej, największe zagęszczenie danych jest wyraźnie widoczne w przedziale od około 30 do 120 znaków.
+
+
+\subsubsection{Analiza częstości występowania słów}
+Przeprowadzono również analizę najczęściej występujących słów w korpusie, której wyniki zostały zwizualizowane za pomocą chmury słów (ang. \textit{WordCloud}). W pierwszym etapie obliczono najczęściej pojawiające się słowa w całym zbiorze danych. Wśród nich znalazły się kolejno takie wyrazy jak: \textit{„i”, „feel”, „and”, „to”, „the”, „a”, „feeling”, „that”, „of”} oraz \textit{„my”}. Dominacja słów takich jak \textit{„i”} (ja) oraz \textit{„feel”} (czuje) sugeruje, że zbiór danych koncentruje się~na~odczuciach, co może wpłynąć na wyraźne rozróżnienie emocji przez modele klasyfikacyjne.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{obrazy/cloud_emotion_1.png}
+    \caption{Chmura słow dla zbioru do analizy emocji. Dane własne.}
+    \label{fig:cloud-emotion-1-png}
+\end{figure}
+Na chmurze słów dominują wyrazy związane z emocjami, takie jak \textit{„feel”, „feeling”, „love”, „life”, „happy”}, co również potwierdza sugestję, że~dane koncentrują się~na~odczuciach i~emocjonach.
+
+\newpage
+W kolejnym kroku analizy z danych usunięto słowa funkcjonalne (ang. \textit{stop words}). Po~tym zabiegu, najczęściej występującymi słowami były kolejno: \textit{„feel”, „feeling”, „like”, „im”, „really”, „know”, „time”, „get”, „little”} oraz \textit{„people”}. Na pierwszy plan wysunęły się słowa takie jak, \textit{„feeling”, „like”, "little"} czy \textit{"really"}. \textit{„Feeling”} występuje bezpośrednio po \textit{„feel”}, a \textit{„like”} oraz wzmacniające przekaz \textit{„really”} i \textit{„little”} także odgrywają istotną rolę, co znów sugeruje, że dane mogą koncentrować się na konkretnych emocjach.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{obrazy/cloud_emotion_2.png}
+    \caption{Chmura słow dla zbioru do analizy emocji po usunięciu słów funkcjonalnych. Dane własne.}
+    \label{fig:cloud-emotion-2-png}
+\end{figure}
+Mimo, że po usunięciu \textit{stop words} na wizualizacji pozostały słowa związane z emocjami, takie jak  \textit{„love”}, ogólny obraz sugeruje, że zbiór może obejmować szeroką gamę słów związanych z emocjami, a nie koncentrować się na jednym dominującym zwrocie.
+
+Pomimo przeprowadzonego czyszczenia, w dalszej analizie zachowano  \textit{stop words} w danych wykorzystywanych do treningu modeli. Jak wspomnianio wcześniej, modele NLP, takie jak BERT czy LSTM, skutecznie wykorzystują kontekst zawarty w pisowni oraz elementach gramatycznych, dlatego nadmierne filtrowanie danych tekstowych nie jest konieczne.
+
+\subsection{Zbiór do analizy sentymentu}
+\subsubsection{Rozkład klas}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{obrazy/sentiment_plot.png}
+    \caption{Rozkład liczebności poszczególnych klas w zbiorze danych do analizy sentymentu. Dane własne.}
+    \label{fig:sentiment-class-png}
+\end{figure}
+
+W zbiorze do analizy sentymentu również występuje znacząca dysproporcja klas, dlatego też~analogicznie do~zbioru związanego z emocjami, w celu zminimalizowania ryzyka przetrenowania względem klas dominujących, zastosowano ważenie klas dla modeli BERT, GRU, LSTM i SVM.
+
+\subsubsection{Analiza długości tekstów}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{obrazy/hist_sentiment_1.png}
+    \caption{Rozkład długości tekstów w zbiorze danych do analizy sentymentu.\\Dane własne.}
+    \label{fig:hist-sentiment-1-png}
+\end{figure}
+
+Histogram długości tekstów (Rysunek \ref{fig:hist-sentiment-1-png}) pokazał znaczną rozpiętość -- większość przykładów zawiera od 100 do 200 znaków, jednak najdłuższe wpisy przekraczały 2\,000 znaków. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{obrazy/hist_sentiment_2.png}
+    \caption{Rozkład długości tekstów w zbiorze danych do analizy sentymentu o długości poniżej 700 znaków. Dane własne.}
+    \label{fig:hist-sentiment-2-png}
+\end{figure}
+
+Histogram ukazujący dane zawierające mniej niż 700 znaków (Rysunek \ref{fig:hist-sentiment-2-png}) pozwolił na~dokładniejsze przedstawienie gęstości rozkładu. Większość wartości znajduje się w okolicach 50–130 znaków, podczas gdy zauważalna część danych rozkłada się również w zakresie od~200~do~500~znaków.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{obrazy/box_sentiment_1.png}
+    \caption{Rozkład liczby znaków w próbkach w zbiorze do analizy sentymentu.\\Dane własne.}
+    \label{fig:box-sentiment-1-png}
+\end{figure}
+
+Na wykresie pudełkowym (Rysunek \ref{fig:box-sentiment-1-png}) widać, że próbki o długości powyżej 199 znaków można uznać za wartości odstające. Ich liczba wynosi 3\,596. Jak wspomniano wcześniej, zdecydowano się odciąć jedynie dane o długości większej niż 256 znaków.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{obrazy/hist_sentiment_3.png}
+    \caption{Rozkład długości tekstów w zbiorze danych do analizy sentymentu\\po usunięciu wartości odstających. Dane własne.}
+    \label{fig:hist-sentiment-3-png}
+\end{figure}
+
+Po tym zabiegu rozkład długości tekstów na histogramie (Rysunek \ref{fig:hist-sentiment-3-png}) ujawnia wyraźne zagęszczenie w przedziale 50--140 znaków, co jest typowe dla komentarzy internetowych. W wyniku przetwarzania usunięto 2\,590 rekordów, pozostawiając 98\,679 przykładów, co jest zbliżone do planowanej liczby stu tysięcy.
+
+\subsubsection{Analiza częstości występowania słów}
+Najczęściej pojawiające się słowa w zbiorze dla sentymentu to kolejno: \textit{„the”, „to”, „I”, „a”, „and”, „in”, „of”, „on”, „is”} oraz \textit{„for”}. Dominują tu słowa funkcjonalne.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{obrazy/cloud_sentiment_1.png}
+    \caption{Chmura słow dla zbioru do analizy sentymentu. Dane własne.}
+    \label{fig:cloud-sentiment-1-png}
+\end{figure}
+Na chmurze słów dominują wyrazy takie jak \textit{„tomorrow”, „day”, „may”, „will”} i \textit{„now”}, ale~pojawiły się także słowa, które niosą pewną wartość wiązaną z sentymentem, takie~jak~\textit{„best”, „good”, „awesome”} czy \textit{„love”}. Choć bez kontekstu trudno jednoznacznie określić, jak~są~nacechowane wypowiedzi zawierające te słowa, to jednak ich obecność wskazuje na możliwą emocjonalną treść.
+
+Po usunięciu \textit{stop words} najczęściej występującymi słowami były kolejno: \textit{„may”, „Im”, „like”, „tomorrow”, „get”, „going”, „see”, „day”, „time” oraz „go”}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{obrazy/cloud_sentiment_2.png}
+    \caption{Chmura słow dla zbioru do analizy sentymentu po usunięciu słów funkcjonalnych. Dane własne.}
+    \label{fig:cloud-sentiment-2-png}
+\end{figure}
+
+Wyniki pozostały zbliżone do poprzednich. Podobnie jak w przypadku zbioru do analizy emocji, w zbiorze do analizy sentymentu zdecydowano się również na zachowanie \textit{stop words} w~danych wykorzystywanych do treningu.
+
+\section{Podział danych na zestawy treningowe, walidacyjne i testowe}
+
+W celu zapewnienia rzetelnej oceny skuteczności zastosowanych modeli klasyfikacyjnych, a także monitorowania ich procesu uczenia, oba zbiory danych zostały podzielone na trzy niezależne zestawy: treningowy, walidacyjny oraz testowy. 
+
+Zbiór danych do analizy sentymentu został podzielony w proporcji 70\% / 15\% / 15\%, odpowiednio dla zestawu treningowego, walidacyjnego i testowego. Podział został wykonany w~sposób losowy, przy zastosowaniu ustalonego ziarna losowości. Aby zagwarantować reprezentatywność każdego z podzbiorów, zastosowano stratyfikację względem etykiet klas -- oznacza to, że proporcje klas (negatywna, neutralna, pozytywna) w każdym z podzbiorów odpowiadają proporcjom występującym w całym zbiorze. Wszystkie uzyskane podzbiory zostały zapisane i~w~dalszych etapach eksperymentów wykorzystano je niezmiennie dla każdego z modeli klasyfikacyjnych analizujących sentyment.
+
+Analogiczne podejście zastosowano przy przygotowywaniu danych dla zadania klasyfikacji emocji, przy czym dodatkowo, przed dokonaniem podziału, zbiór został zrównoważony pod~względem liczebności klas. Zastosowano próbkowanie z zachowaniem równych udziałów, tzn.~dla~każdej z~klas (z wyjątkiem najmniej licznej -- „zaskoczenie”) losowo wybrano po 16\,667 przykładów ($16\,667 \times 6 \approx 100\,000$). 
+
+W niniejszej pracy nie zastosowano walidacji krzyżowej, co było celowym wyborem metodologicznym wynikającym z potrzeby zapewnienia spójności porównania pomiędzy różnymi modelami, które znacząco różnią się pod względem złożoności oraz czasu trenowania, zwłaszcza w przypadku modeli transformatorowych, takich jak BERT, dla których proces treningu jest czasochłonny. Wykorzystany stały, stratyfikowany podział na zbiory treningowy, walidacyjny i~testowy umożliwił jednoznaczną i powtarzalną ocenę skuteczności modeli. Pozwoliło to na porównanie modeli w ich podstawowej konfiguracji, bez wprowadzania dodatkowej optymalizacji hiperparametrów, ponieważ celem badania nie było maksymalne dostosowanie każdego modelu indywidualnie.
+
+\endinput

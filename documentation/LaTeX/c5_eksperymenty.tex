@@ -1,0 +1,392 @@
+\chapter{Eksperymenty i wyniki}
+
+Celem tego rozdziału jest zaprezentowanie wyników uzyskanych w trakcie przeprowadzonych eksperymentów. Jak zostało wpsomniane, analizowane były trzy zadania: klasyfikacja sentymentu, klasyfikacja emocji oraz jednoczesna klasyfikacja sentymentu i emocji. W pierwszej kolejności omówione zostaną wyniki uzyskane przez modele jednozadaniowe, a następnie zestawione zostaną ich osiągi z modelami wielozadaniowymi.
+
+\section{Modele jednozadaniowe dla analizy sentymentu}
+W zadaniu klasyfikacji sentymentu przetestowano cztery różne architektury: BERT, LSTM, GRU oraz klasyfikator SVM.
+
+\begin{table}[H]
+\centering
+\label{tab:sentiment_models}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Model} & \textbf{Dokł.} & \textbf{Prec. (makro)} & \textbf{Czuł. (makro)} & \textbf{F1-score (makro)} \\
+\hline
+BERT & 0.74 & 0.74 & 0.74 & 0.74 \\
+LSTM & 0.67 & 0.67 & 0.68 & 0.67 \\
+GRU  & 0.64 & 0.64 & 0.67 & 0.64 \\
+SVM  & 0.66 & 0.65 & 0.66 & 0.66 \\
+\hline
+\end{tabular}
+\caption{Zestawienie miar skuteczności dla modeli jednozadaniowych w zadaniu klasyfikacji sentymentu. Dane własne.}
+\end{table}
+
+Model BERT uzyskał najwyższe wyniki we wszystkich czterech miarach, osiągając 0.74~zarówno w dokładności, jak i w precyzji, czułości oraz \textit{F1-score}. Oznacza to, że model ten najskuteczniej radził sobie z klasyfikacją wszystkich klas sentymentu w sposób zrównoważony.
+
+Model LSTM uplasował się na drugim miejscu, osiągając dokładność 0.67 oraz zbliżone wartości pozostałych miar. Wskazuje to na stabilną, choć niższą niż BERT, skuteczność klasyfikacji.
+
+Model SVM uzyskał dokładność 0.66, a pozostałe miary także utrzymywały się na podobnym poziomie, co świadczy o jego spójności w przewidywaniu klas, mimo że nie wykorzystuje mechanizmów głębokiego uczenia.
+
+Model GRU osiągnął najniższe wartości, co sugeruje, że był najmniej skuteczny w klasyfikacji spośród porównywanych modeli jednozadaniowych.
+
+\newpage
+\section{Modele jednozadaniowe dla analizy emocji}
+
+W zadaniu identyfikacji emocji wykorzystano te same architektury, które były użyte przy klasyfikacji sentymentu, czyli: BERT, LSTM, GRU oraz SVM.
+
+\begin{table}[H]
+\centering
+\label{tab:emotion_models}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Model} & \textbf{Dokł.} & \textbf{Prec. (makro)} & \textbf{Czuł. (makro)} & \textbf{F1-score (makro)} \\
+\hline
+BERT & 0.95 & 0.95 & 0.95 & 0.95 \\
+LSTM & 0.95 & 0.95 & 0.95 & 0.95 \\
+GRU  & 0.94 & 0.94 & 0.94 & 0.94 \\
+SVM  & 0.91 & 0.91 & 0.91 & 0.91 \\
+\hline
+\end{tabular}
+\caption{Zestawienie miar skuteczności dla modeli jednozadaniowych w zadaniu klasyfikacji emocji. Dane własne.}
+\end{table}
+
+Model BERT osiągnął najwyższe wyniki spośród wszystkich analizowanych modeli, uzyskując wartość 0.95 we wszystkich czterech miarach: dokładności, precyzji, czułości oraz \textit{F1-score}. Choć model LSTM osiągnął identyczne wartości w tej zbiorczej tabeli, to BERT uzyskał wyższe wyniki dla większości poszczególnych klas emocji, co czyni go obiektywnie lepszym modelem w tym zadaniu. Różnice te zostaną przedstawione w sekcji niżej, poświęconej analizie błędów modeli.
+
+Jak wspomniano, model LSTM uzyskał identyczne wyniki zbiorcze jak BERT, co wskazuje na porównywalną skuteczność tych dwóch architektur w klasyfikacji emocji, jednak wyniki LSTM dla poszczególnych klas emocji były nieco niższe niż w przypadku BERT-a.
+
+Model GRU osiągnął nieco niższe rezultaty -- wartości wszystkich miar wyniosły 0.94. Pomimo minimalnej różnicy, model ten prezentuje wysoki poziom skuteczności w zadaniu klasyfikacji emocji.
+
+Model SVM uzyskał najniższe wyniki w zestawieniu -- 0.91 dla każdej z miar. Pomimo tego, jego skuteczność pozostaje na zadowalająco wysokim poziomie, biorąc pod uwagę fakt, że jest to model nieneuronowy, oparty na klasycznych metodach przetwarzania tekstu.
+
+\section{Modele wielozadaniowe}
+
+W tej sekcji zestawiono wyniki modeli uczonych w podejściu jednozadaniowym oraz wielozadaniowym (multitasking). Celem porównania było sprawdzenie, czy równoczesne uczenie się klasyfikacji sentymentu i emocji może wpłynąć na jakość predykcji w porównaniu do klasycznych podejść, w których modele trenowane są oddzielnie dla każdego z zadań.
+
+\subsection{Zestawienie modeli wielozadaniowych}
+
+W tabeli poniżej zaprezentowano wyniki modeli wielozadaniowych opartych na architekturach BERT, LSTM i GRU. Model SVM nie został uwzględniony w analizie modeli wielozadaniowych, ponieważ tradycyjna implementacja SVM, stosowana w niniejszej pracy, nie umożliwia bezpośredniego uczenia wielozadaniowego.
+
+\newpage
+
+\begin{table}[H]
+\centering
+\label{tab:multitask_models}
+\begin{tabular}{|l|l|c|c|c|c|}
+\hline
+\textbf{Model} & \textbf{Zadanie} & \textbf{Dokładność} & \textbf{Precyzja} & \textbf{Czułość} & \textbf{F1-score} \\
+\hline
+BERT & Sentyment & 0.73 & 0.72 & 0.74 & 0.73 \\
+BERT & Emocje    & 0.95 & 0.95 & 0.95 & 0.95 \\
+\hline
+LSTM & Sentyment & 0.67 & 0.67 & 0.67 & 0.67 \\
+LSTM & Emocje    & 0.95 & 0.95 & 0.95 & 0.95 \\
+\hline
+GRU &  Sentyment & 0.65 & 0.65 & 0.67 & 0.66 \\
+GRU &  Emocje    & 0.94 & 0.94 & 0.94 & 0.94 \\
+\hline
+\end{tabular}
+\caption{
+Zestawienie miar skuteczności (makro) dla modeli wielozadaniowych w zadaniu klasyfikacji sentymentu i emocji. Dane własne.}
+\end{table}
+
+Wyniki pokazują, że modele multitaskingowe również bardzo dobrze radzą sobie w zadaniach klasyfikacyjnych, zwłaszcza w klasyfikacji emocji. Modele BERT i LSTM osiągnęły identyczne wyniki w tabeli zbiorczej dla tego zadania (dla poszczególnych klas wyniki również pozostają bardzo zbliżone), natomiast GRU był minimalnie słabszy. W zadaniu klasyfikacji sentymentu również najlepiej wypadł BERT, a wyniki LSTM i GRU były zbliżone.
+
+\subsection{Porównanie modeli jednozadaniowych i wielozadaniowych}
+
+Jak natomiast radzą sobie modele wielozadaniowe w porównaniu do ich jednozadaniowych odpowiedników? W poniższej tabeli przedstawiono porównanie skuteczności modeli BERT, LSTM oraz GRU, trenowanych osobno dla każdego zadania, z ich odpowiednikami uczonymi w sposób wielozadaniowy.
+
+\begin{table}[H]
+\centering
+\label{tab:single_vs_multi}
+\begin{tabular}{|l|l|c|c|c|c|c|c|c|c|}
+\hline
+\textbf{Model} & \textbf{Zadanie} &
+\multicolumn{2}{c|}{\textbf{Dokł.}} &
+\multicolumn{2}{c|}{\textbf{Prec.}} &
+\multicolumn{2}{c|}{\textbf{Czuł.}} &
+\multicolumn{2}{c|}{\textbf{F1-score}} \\
+\cline{3-10}
+ &  & 1-zad. & W-zad. & 1-zad. & W-zad. & 1-zad. & W-zad.  & 1-zad. & W-zad. \\
+\hline
+BERT & Sent. & 0.74 & \cellcolor{gray!20}0.73 & 0.74 & \cellcolor{gray!20}0.72 & 0.74 & \cellcolor{gray!20}0.74 & 0.74 & \cellcolor{gray!20}0.73 \\
+BERT & Emocje    & 0.95 & \cellcolor{gray!20}0.95 & 0.95 & \cellcolor{gray!20}0.95 & 0.95 & \cellcolor{gray!20}0.95 & 0.95 & \cellcolor{gray!20}0.95 \\
+\hline
+LSTM & Sent. & 0.67 & \cellcolor{gray!20}0.67 & 0.67 & \cellcolor{gray!20}0.67 & 0.68 & \cellcolor{gray!20}0.67 & 0.67 & \cellcolor{gray!20}0.67 \\
+LSTM & Emocje    & 0.95 & \cellcolor{gray!20}0.95 & 0.95 & \cellcolor{gray!20}0.95 & 0.95 & \cellcolor{gray!20}0.95 & 0.95 & \cellcolor{gray!20}0.95 \\
+\hline
+GRU  & Sent. & 0.64 & \cellcolor{gray!20}0.65 & 0.64 & \cellcolor{gray!20}0.65 & 0.67 & \cellcolor{gray!20}0.67 & 0.64 & \cellcolor{gray!20}0.66 \\
+GRU  & Emocje    & 0.94 & \cellcolor{gray!20}0.94 & 0.94 & \cellcolor{gray!20}0.94 & 0.94 & \cellcolor{gray!20}0.94 & 0.94 & \cellcolor{gray!20}0.94 \\
+\hline
+\end{tabular}
+\caption{Zestawienie miar skuteczności (makro) dla modeli jednozadaniowych\\i wielozadaniowych dla każdej architektury. Dane własne.}
+\end{table}
+
+Z przedstawionych danych wynika, że multitasking nie wpłynął istotnie na pogorszenie bądź polepszenie wyników klasyfikacji. W niektórych przypadkach (jak GRU) nawet lekko poprawił uzyskiwane wyniki dla sentymentu, w innych pogorszył -- BERT uzyskuje odrobinę gorsze wyniki dla klasyfikacji sentymentu. Dla klasyfikacji emocji wyniki dla modeli jednozadaniowych i wielozadaniowych były identyczne lub niemal identyczne.
+
+\newpage
+\section{Analiza błędów modeli}
+
+Celem tej sekcji jest zrozumienie, w jakich przypadkach modele klasyfikacyjne zawodzą oraz czy istnieją wzorce w popełnianych błędach.
+
+\subsection{Klasyfikacja sentymentu}
+
+Modele BERT, LSTM, GRU i SVM zostały ocenione pod kątem ich zdolności do klasyfikacji poszczególnych klas sentymentu, a wyniki zostały przedstawione w tabeli poniżej.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|c|c|c|}
+\hline
+\textbf{Model} & \textbf{Klasa} & \textbf{Precyzja} & \textbf{Czułość} & \textbf{F1-score} \\
+\hline
+\multirow{3}{*}{BERT} 
+& Negatywny & 0.72 & 0.72 & 0.72 \\
+& Neutralny & 0.73 & 0.67 & 0.70 \\
+& Pozytywny & 0.75 & 0.83 & 0.79 \\
+\hline
+\multirow{3}{*}{LSTM} 
+& Negatywny & 0.60 & 0.70 & 0.65 \\
+& Neutralny & 0.66 & 0.62 & 0.64 \\
+& Pozytywny & 0.73 & 0.71 & 0.72 \\
+\hline
+\multirow{3}{*}{GRU} 
+& Negatywny & 0.55 & 0.78 & 0.65 \\
+& Neutralny & 0.69 & 0.48 & 0.57 \\
+& Pozytywny & 0.69 & 0.76 & 0.72 \\
+\hline
+\multirow{3}{*}{SVM} 
+& Negatywny & 0.58 & 0.68 & 0.62 \\
+& Neutralny & 0.66 & 0.63 & 0.64 \\
+& Pozytywny & 0.73 & 0.68 & 0.71 \\
+\hline
+\multirow{3}{*}{BERT (multi)} 
+& Negatywny & 0.65 & 0.80 & 0.72 \\
+& Neutralny & 0.74 & 0.63 & 0.68 \\
+& Pozytywny & 0.78 & 0.80 & 0.79 \\
+\hline
+\multirow{3}{*}{LSTM (multi)} 
+& Negatywny & 0.60 & 0.70 & 0.65 \\
+& Neutralny & 0.65 & 0.65 & 0.65 \\
+& Pozytywny & 0.76 & 0.67 & 0.71 \\
+\hline
+\multirow{3}{*}{GRU (multi)} 
+& Negatywny & 0.54 & 0.77 & 0.63 \\
+& Neutralny & 0.68 & 0.57 & 0.62 \\
+& Pozytywny & 0.75 & 0.69 & 0.72 \\
+\hline
+\end{tabular}
+\caption{Zbiorcze zestawienie miar skuteczności dla modeli sentymentu w podziale\\na klasy. Dane własne.}
+\label{tab:sentiment_per_model}
+\end{table}
+
+Model BERT uzyskał najlepsze wyniki spośród wszystkich modeli, zarówno w wersji jednozadaniowej, jak i wielozadaniowej. Szczególnie dobrze radził sobie w przypadku klasy \textit{Pozytywny} -- \textit{F1-score} na poziomie 0.79. Wyniki dla klasy \textit{Neutralny} są jednak zauważalnie słabsze, z~\textit{F1-score} odpowiednio równym 0.70 i 0.68. Klasa \textit{Negatywny} również nie wypadła najlepiej – \textit{F1} równe 0.72. Może to sugerować, że klasyfikacja neutralnych i negatywnych opinii stanowi trudność.
+
+LSTM, zarówno dla jednozadaniowego, jak i wielozadaniowego modelu, uzyskał wyniki nieco niższe niż BERT. Osiągnął on \textit{F1-score} równy 0.72/0.71 dla klasy \textit{Pozytywny}. Wyniki dla klasy \textit{Neutralny} wynosiły odpowiednio 0.64 i 0.65, również ukazując znaczny spadek w porównaniu z~powyższym modelem. Dla klasyfikacji negatywnego sentymentu osiągnięty wynik to~0.65. Wyniki sugerują, że model ten miał trudności nie tylko z rozróżnieniem klasy neutralnej, ale~również z klasyfikacją negatywnych opinii.
+
+\newpage
+Model GRU radził sobie nieco gorzej w porównaniu do LSTM i BERT-a. Chociaż uzyskał dobrą czułość (0.78/0.77) dla klasy \textit{Negatywny}, jego precyzja (0.55/0.54) była znacznie niższa, co prowadziło do niższego wyniku \textit{F1} (0.65/0.63). Dla klasy \textit{Neutralny} GRU uzyskał najniższe wartości spośród wszystkich modeli w zakresie czułości (0.48/0.57) i \textit{F1} (0.57/0.62). Natomiast w klasyfikacji \textit{Pozytywny} wyniki były solidne, z \textit{F1-score} równym 0.72.
+
+Model SVM z kolei uzyskał wyniki zbliżone do GRU. W klasyfikacji \textit{Pozytywny} osiągnął \textit{F1-score} na poziomie 0.71, a dla klasy \textit{Negatywny} wynik wyniósł 0.62. Choć model ten osiągnął wyższy wynik dla klasy \textit{Neutralny} (0.64), jego ogólna skuteczność w zadaniu była mniejsza w~porównaniu do LSTM czy BERT-a.
+
+Dla modeli wielozadaniowych wyniki były zbliżone do wersji jednozadaniowych, ale z pewnymi różnicami. Model BERT (multi) uzyskał lepszy wynik w klasyfikacji \textit{Negatywnego} sentymentu, w porównaniu do wersji jednozadaniowej. Model LSTM (multi) uzyskał gorsze wyniki w klasyfikacji \textit{Pozytywnych} opinii, ale za to wykazał wyższą skuteczność w klasyfikacji opinii \textit{Neutralnych}. Natomiast GRU (multi) lepiej radził sobie z klasą \textit{Neutraly}, jednak w przypadku klasy \textit{Negatywnej} osiągnął gorsze rezultaty niż w wersji jednozadaniowej.
+
+Z analizy wyników modeli jedno- i wielozadaniowych wynika, że multitasking nie poprawił znacznie wyników w porównaniu do podejścia jednozadaniowego, ale także nie pogorszył wyników w klasyfikacji sentymentu. W większości przypadków modele multitaskingowe wykazały porównywalną skuteczność, choć z minimalnymi różnicami.
+
+\raggedbottom
+\vspace{15pt}
+W celu wizualizacji najczęstszych pomyłek, poniżej przedstawiono zbiorcze macierze pomyłek dla każdego z modeli.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{obrazy/cf_mat_bert_sentiment.png}
+    \caption{Macierz pomyłek -- BERT. Dane własne.}
+    \label{fig:cf_bert_sentiment}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{minipage}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{obrazy/cf_mat_lstm_sentiment.png}
+    \captionsetup{font=scriptsize}
+    \caption{Macierz pomyłek -- LSTM.}
+    \label{fig:cf_lstm_sentiment}
+\end{minipage}\hfill
+\begin{minipage}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{obrazy/cf_mat_gru_sentiment.png}
+    \captionsetup{font=scriptsize}
+    \caption{Macierz pomyłek -- GRU.}
+    \label{fig:cf_gru_sentiment}
+\end{minipage}
+
+\vskip\baselineskip
+
+\begin{minipage}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{obrazy/cf_mat_svm_sentiment.png}
+    \captionsetup{font=scriptsize}
+    \caption{Macierz pomyłek -- SVM.}
+    \label{fig:cf_svm_sentiment}
+\end{minipage}\hfill
+\begin{minipage}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{obrazy/cf_mat_bert_multi__sentiment.png}
+    \captionsetup{font=scriptsize}
+    \caption{Macierz pomyłek -- BERT (multi).}
+    \label{fig:cf_bert_multi_sentiment}
+\end{minipage}
+
+\vskip\baselineskip
+
+\begin{minipage}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{obrazy/cf_mat_lstm_multi__sentiment.png}
+    \captionsetup{font=scriptsize}
+    \caption{Macierz pomyłek -- LSTM (multi).}
+    \label{fig:cf_lstm_multi_sentiment}
+\end{minipage}\hfill
+\begin{minipage}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{obrazy/cf_mat_gru_multi__sentiment.png}
+    \captionsetup{font=scriptsize}
+    \caption{Macierz pomyłek -- GRU (multi).}
+    \label{fig:cf_lstm_gru_sentiment}
+\end{minipage}
+\caption{Kolaż macierzy pomyłek dla modeli klasyfikacji sentymentu. Dane własne.}
+\end{figure}
+
+Na podstawie analizy macierzy pomyłek można łatwo zauważyć, że najczęstsze pomyłki występują pomiędzy klasą \textit{Neutralny} a pozostałymi klasami. Modele często błędnie klasyfikowały \textit{Neutralne} wypowiedzi jako \textit{Negatywne}. BERT (zarówno jedno-, jak i wielozadaniowy) znacznie lepiej radził sobie z rozróżnianiem tych klas, co potwierdzają wyższe wartości \textit{F1-score} oraz mniejsze natężenie błędów w macierzy pomyłek.
+
+\subsection{Klasyfikacja emocji}
+
+Po ocenie modeli pod względem ich skuteczności w klasyfikacji emocji, uzyskane wyniki zaprezentowane zostały w poniższej tabeli.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|c|c|c|c|c|c|}
+\hline
+\multirow{2}{*}{\textbf{Model}} & 
+\multirow{2}{*}{\textbf{Miara}} & 
+\multicolumn{6}{c|}{\textbf{Emocje}} \\
+\cline{3-8}
+& & \textbf{Smutek} & \textbf{Radość} & \textbf{Miłość} & 
+\textbf{Złość} & \textbf{Strach} & \textbf{Zaskoczenie} \\
+\hline
+\multirow{3}{*}{\textbf{BERT}} 
+& Precyzja & 0.99 & 0.99 & 0.93 & 0.96 & 0.93 & 0.90 \\
+& Czułość  & 0.95 & 0.92 & 1.00 & 0.95 & 0.90 & 1.00 \\
+& F1-score & \cellcolor{gray!20}0.97 & \cellcolor{gray!20}0.95 & \cellcolor{gray!20}0.96 & \cellcolor{gray!20}0.95 & \cellcolor{gray!20}0.92 & \cellcolor{gray!20}0.95 \\
+\hline
+\multirow{3}{*}{\textbf{LSTM}} 
+& Precyzja & 0.98 & 1.00 & 0.93 & 0.95 & 0.93 & 0.90 \\
+& Czułość  & 0.95 & 0.90 & 1.00 & 0.95 & 0.90 & 1.00 \\
+& F1-score & \cellcolor{gray!20}0.96 & \cellcolor{gray!20}0.94 & \cellcolor{gray!20}0.96 & \cellcolor{gray!20}0.95 & \cellcolor{gray!20}0.91 & \cellcolor{gray!20}0.94 \\
+\hline
+\multirow{3}{*}{\textbf{GRU}} 
+& Precyzja & 0.96 & 0.99 & 0.93 & 0.93 & 0.94 & 0.90 \\
+& Czułość  & 0.95 & 0.90 & 1.00 & 0.94 & 0.86 & 0.99 \\
+& F1-score & \cellcolor{gray!20}0.95 & \cellcolor{gray!20}0.94 & \cellcolor{gray!20}0.96 & \cellcolor{gray!20}0.94 & \cellcolor{gray!20}0.90 & \cellcolor{gray!20}0.94 \\
+\hline
+\multirow{3}{*}{\textbf{SVM}} 
+& Precyzja & 0.94 & 0.94 & 0.89 & 0.92 & 0.90 & 0.86 \\
+& Czułość  & 0.88 & 0.86 & 0.97 & 0.91 & 0.86 & 0.97 \\
+& F1-score & \cellcolor{gray!20}0.91 & \cellcolor{gray!20}0.90 & \cellcolor{gray!20}0.93 & \cellcolor{gray!20}0.92 & \cellcolor{gray!20}0.88 & \cellcolor{gray!20}0.92 \\
+\hline
+\multirow{3}{*}{\textbf{BERT (m)}} 
+& Precyzja & 0.98 & 0.99 & 0.93 & 0.92 & 0.97 & 0.90 \\
+& Czułość  & 0.95 & 0.91 & 1.00 & 0.98 & 0.85 & 1.00 \\
+& F1-score & \cellcolor{gray!20}0.97 & \cellcolor{gray!20}0.95 & \cellcolor{gray!20}0.96 & \cellcolor{gray!20}0.95 & \cellcolor{gray!20}0.90 & \cellcolor{gray!20}0.95 \\
+\hline
+\multirow{3}{*}{\textbf{LSTM (m)}} 
+& Precyzja & 0.98 & 0.98 & 0.93 & 0.96 & 0.92 & 0.90 \\
+& Czułość  & 0.95 & 0.91 & 0.99 & 0.93 & 0.90 & 1.00 \\
+& F1-score & \cellcolor{gray!20}0.96 & \cellcolor{gray!20}0.95 & \cellcolor{gray!20}0.96 & \cellcolor{gray!20}0.94 & \cellcolor{gray!20}0.91 & \cellcolor{gray!20}0.95 \\
+\hline
+\multirow{3}{*}{\textbf{GRU (m)}} 
+& Precyzja & 0.95 & 0.99 & 0.93 & 0.98 & 0.92 & 0.90 \\
+& Czułość  & 0.96 & 0.91 & 0.99 & 0.89 & 0.90 & 1.00 \\
+& F1-score & \cellcolor{gray!20}0.96 & \cellcolor{gray!20}0.95 & \cellcolor{gray!20}0.96 & \cellcolor{gray!20}0.93 & \cellcolor{gray!20}0.91 & \cellcolor{gray!20}0.95 \\
+\hline
+\end{tabular}
+\caption{Zbiorcze zestawienie miar skuteczności dla modeli emocji w podziale na klasy. Dane własne.}
+\label{tab:emotion_per_model}
+\end{table}
+
+Choć w klasyfikacji emocji wszystkie analizowane modele osiągnęły bardzo podobną, wysoką skuteczność, to jednak BERT osiągnął najlepsze wyniki, zarówno w wersji jedno- i wielozadaniowej. Szczególnie dobrze radził sobie w klasyfikacji klas \textit{Smutek} oraz \textit{Radość}, które charakteryzowały się największymi rozbieżnościami w wynikach – dla klasy \textit{Smutek} wyniki wahały się od 0.91 do 0.97, a dla \textit{Radości} od 0.90 do 0.95. Dla pozostałych klas osiągnął najwyższe z~uzyskanych przez wszystkie modele wartości. Model BERT w wersji wielozadaniowej wykazał minimalną różnicę – w klasyfikacji \textit{Strachu} uzyskał o 0.02 gorszą skuteczność.
+
+Model LSTM uzyskał dobre rezultaty w klasyfikacji emocji, z wysokimi wynikami dla klasy \textit{Smutek} oraz \textit{Radość}, delikatnie tylko różniąc się na swoją niekorzyść od modelu BERT. W~pozostałych klasach uzyskał niemal identyczne wyniki. W wersji wielozadaniowej, model LSTM uzyskał poprawę w klasyfikacji klas \textit{Radość} i \textit{Zaskoczenie}, ale nieco niższe wyniki dla klasy \textit{Złość}, wskazując na nieco lepszą skuteczność w tej wersji.
+
+\newpage
+GRU w wersji jednozadaniowej uzyskał również dobre osiągi, zbliżone do LSTM, z wynikiem \textit{F1-score} dla klasy \textit{Smutek} równym 0.95. W wersji wielozadaniowej zauważalna jest minimalna poprawa dla tej klasy, w której uzyskał \textit{F1-score} na poziomie 0.96. Najniższe wyniki w~przypadku GRU pojawiły się w klasyfikacji \textit{Strachu}, gdzie \textit{F1-score} wynosi 0.90/0.91.
+
+Model SVM uzyskał wyniki wyraźnie niższe niż sieci neuronowe, z niższym \textit{F1-score} dla wszystkich klas. Najniższy rezultat uzyskał dla klasy \textit{Strach} równy 0.88, podczas gdy modele oparte o sieci neuronowe nie osiągnęły wyniku poniżej 0.90. Dla klas \textit{Radość}, \textit{Miłość} i \textit{Zaskoczenie} model SVM uzyskał również stosunkowo niskie wyniki w porównaniu z innymi modelami. 
+
+W przypadku modeli wielozadaniowych, wyniki w każdym przypadku były zbliżone do~wersji jednozadaniowych. Uzyskane różnice jednak nie były większe niż 0.01 w każdym przypadku, oprócz BERT-a. Wyniki sugerują, że multitasking ani nie poprawił wyników, ani ich nie pogorszył w porównaniu do podejścia jednozadaniowego.
+
+\raggedbottom
+\vspace{15pt}
+Aby zobrazować najczęstsze błędy, poniżej zaprezentowano zbiorcze macierze pomyłek dla poszczególnych modeli.
+
+\vspace{35pt}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{obrazy/cf_mat_bert_emotion.png}
+    \caption{Macierz pomyłek -- BERT. Dane własne.}
+    \label{fig:cf_bert_emotion}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{minipage}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{obrazy/cf_mat_lstm_emotion.png}
+    \captionsetup{font=scriptsize}
+    \caption{Macierz pomyłek -- LSTM.}
+    \label{fig:cf_lstm_emotion}
+\end{minipage}\hfill
+\begin{minipage}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{obrazy/cf_mat_gru_emotion.png}
+    \captionsetup{font=scriptsize}
+    \caption{Macierz pomyłek -- GRU.}
+    \label{fig:cf_gru_emotion}
+\end{minipage}
+
+\vskip\baselineskip
+
+\begin{minipage}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{obrazy/cf_mat_svm_emotion.png}
+    \captionsetup{font=scriptsize}
+    \caption{Macierz pomyłek -- SVM.}
+    \label{fig:cf_svm_emotion}
+\end{minipage}\hfill
+\begin{minipage}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{obrazy/cf_mat_bert_multi__emotion.png}
+    \captionsetup{font=scriptsize}
+    \caption{Macierz pomyłek -- BERT (multi).}
+    \label{fig:cf_bert_multi_emotion}
+\end{minipage}
+
+\vskip\baselineskip
+
+\begin{minipage}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{obrazy/cf_mat_lstm_multi__emotion.png}
+    \captionsetup{font=scriptsize}
+    \caption{Macierz pomyłek -- LSTM (multi).}
+    \label{fig:cf_lstm_multi_emotion}
+\end{minipage}\hfill
+\begin{minipage}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{obrazy/cf_mat_gru_multi__emotion.png}
+    \captionsetup{font=scriptsize}
+    \caption{Macierz pomyłek -- GRU (multi).}
+    \label{fig:cf_lstm_gru_emotion}
+\end{minipage}
+\caption{Kolaż macierzy pomyłek dla modeli klasyfikacji emocji. Dane własne.}
+\end{figure}
+
+Analizując macierze pomyłek można zaobserwować, że najczęstsze pomyłki występują między klasą \textit{Strach} a klasą \textit{Zaskoczenie}, a także między klasą \textit{Radość} a klasą \textit{Miłość}. Ponadto, modele często mylą klasę \textit{Złość} z klasą \textit{Strach}. Występują również inne mniejsze błędy pomiędzy poszczególnymi klasami. Ciekawym spostrzeżeniem jest fakt, że klasa \textit{Zaskoczenie} rzadko jest mylona z innymi klasami przez wszystkie modele, z wyjątkiem modelu SVM.
+
+\endinput
